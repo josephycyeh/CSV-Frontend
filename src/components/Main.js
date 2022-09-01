@@ -31,11 +31,13 @@ function Main() {
     return (
         <>
             <div className='main-bg'>
-                <div className='center'>
-                    <div className='outside'>
-                        <div className='header'>
+            <div className='header'>
                             <p className='header-text'>Attain CSV Ordering</p>
                         </div>
+                <div className='center'>
+    
+                    <div className='outside'>
+                      
                         <div className='btn-wrapper'>
                             <div>
                                 <InputLabel id="demo-simple-select-label">Store</InputLabel>
