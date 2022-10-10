@@ -1,7 +1,6 @@
-import logo from './logo.svg';
 import './App.css';
 import Main from './components/Main';
-import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
 const client = new ApolloClient({
   uri: 'https://attain-server.herokuapp.com',
