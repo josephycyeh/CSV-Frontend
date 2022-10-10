@@ -4,7 +4,7 @@ import Main from './components/Main';
 import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000',
+  uri: 'https://attain-server.herokuapp.com',
   cache: new InMemoryCache(),
 });
 
