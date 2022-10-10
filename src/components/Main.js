@@ -17,8 +17,8 @@ const Alert = React.forwardRef(function Alert(
   });
   
   const GET_ITEMS_AVAILABLE_DUFFL = gql`
-  query ItemsAvailableDuffl($items: [String]) {
-    itemsAvailableDuffl(items: $items) {
+  query ItemsAvailableDuffl($items: [String], $message: String) {
+    itemsAvailableDuffl(items: $items, message: $message) {
       item_id
       name
     }
@@ -52,6 +52,7 @@ function Main() {
 
       
     const [file, setFile] = useState([])
+    const [uploadedFile ,setUploadedFile] = useState(null)
     const [open, setOpen] = React.useState(false);
     const [store, setStore] = useState('')
     const [filename, setFilename] = useState("")
@@ -77,7 +78,8 @@ function Main() {
         }
         getItemsAvailableDuffl({
             variables: {
-                items: Object.keys(file)
+                items: Object.keys(file),
+                message: JSON.stringify(uploadedFile)
             }
         })
 
@@ -132,7 +134,7 @@ function Main() {
                     header: true,
                     skipEmptyLines: true,
                     complete: function (results) {
-                     
+                      setUploadedFile(results)
                       var modifiedResults = results.data.reduce(function(map, obj) {
                         map[obj.product_name] = {
                             quantity: obj.total_packs_ordered
