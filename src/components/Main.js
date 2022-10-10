@@ -1,18 +1,154 @@
-import React from 'react'
+import React, {useCallback, useState, useEffect} from 'react'
 import './Main.css'
-import { Button, InputLabel, MenuItem, Select } from '@mui/material'
+import { Button, InputLabel, MenuItem, Select, Modal, Box, Snackbar} from '@mui/material'
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useDropzone } from 'react-dropzone'
+import Papa from 'papaparse'
+import { useLazyQuery, useMutation,  gql } from '@apollo/client';
+import { FixedSizeList as List } from 'react-window';
+
+
+const Alert = React.forwardRef(function Alert(
+    props,
+    ref,
+  ) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  
+  const GET_ITEMS_AVAILABLE_DUFFL = gql`
+  query ItemsAvailableDuffl($items: [String]) {
+    itemsAvailableDuffl(items: $items) {
+      item_id
+      name
+    }
+  }
+`;
+
+const IMPORT_ITEMS_TO_CART = gql`
+mutation ImportItemsToCart($importItemsToCartInput: importItemsToCartInput!) {
+    importItemsToCart(importItemsToCartInput: $importItemsToCartInput) {
+      id
+      cartItems {
+        id
+        name
+        unit_size
+        price
+        upc1
+        upc2
+        nacs_category
+        nacs_subcategory
+        item_id
+        quantity
+        image
+        supplier_code
+        supplier
+      }
+      subtotal
+    }
+  }`
 
 function Main() {
-    function Upload(props) {
-        const { acceptedFiles, getRootProps, getInputProps } = useDropzone();
 
-        const files = acceptedFiles.map(file => (
-            <li key={file.path}>
-                {file.path} - {file.size} bytes
-            </li>
-        ));
+      
+    const [file, setFile] = useState([])
+    const [open, setOpen] = React.useState(false);
+    const [store, setStore] = useState('')
+    const [filename, setFilename] = useState("")
+    const [itemsDetail, setItemsDetail] = useState([])
+    const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
+    const [modalVisible, setModalVisible] = useState(false)
+    const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(GET_ITEMS_AVAILABLE_DUFFL);
+    const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
+
+    const handleClose = () => {
+        setOpen(false);
+      };
+    
+    
+      const handleCloseModal = () => {
+          setModalVisible(false)
+        
+          
+      }
+    const generateOrder = () => {
+        if (data) {
+            setModalVisible(true)
+        }
+        getItemsAvailableDuffl({
+            variables: {
+                items: Object.keys(file)
+            }
+        })
+
+    }
+
+    const importItems = () => {
+        const itemsDetailInput = itemsDetail.map((item) => (
+            {
+                cartId: 7,
+                itemId: item.item_id,
+                quantity: parseInt(file[item.name].quantity)
+            }
+        ))
+        console.log(itemsDetailInput)
+        
+        importItemsToCart({
+            variables: {
+                "importItemsToCartInput": {
+                  "userId": 7,
+                  "itemsDetail": itemsDetailInput
+                }
+              }
+        })
+        handleCloseModal()
+        setOpen(true)
+    }
+
+
+    const Row = ({ index, style }) => (
+        <div style={style}>
+            {unavailableItemsDetail[index].name}
+        </div>
+      );
+    
+    useEffect(() => {
+        if (!loading && data) {
+            const items = data.itemsAvailableDuffl
+            const unavailableItems = items.filter((item) => item.item_id === null)
+            const availableItems = items.filter((item) => item.item_id !== null)
+            setUnavailableItemsDetail(unavailableItems)
+            setItemsDetail(availableItems)
+            setModalVisible(true)
+        }
+    }, [data, loading])
+    
+    function Upload(props) {
+        
+        const onDrop = useCallback((acceptedFiles) => {
+            acceptedFiles.forEach((file) => {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                     
+                      var modifiedResults = results.data.reduce(function(map, obj) {
+                        map[obj.product_name] = {
+                            quantity: obj.total_packs_ordered
+                        };
+                        return map;
+                    }, {});
+                    setFile(modifiedResults)
+                      setFilename(file.name)
+                    },
+                  });
+            })
+            
+          }, [])
+
+        const { acceptedFiles, getRootProps, getInputProps } = useDropzone({onDrop});
+
+  
 
         return (
             <section className="upload-container">
@@ -23,6 +159,10 @@ function Main() {
                         <CloudUploadOutlinedIcon style={{ color: 'black', fontSize: '70px' }} />
                     </div>
                 </div>
+                  <aside>
+        <h4>File</h4>
+        <h2>{filename}</h2>
+      </aside>
             </section>
         );
     }
@@ -31,6 +171,35 @@ function Main() {
     return (
         <>
             <div className='main-bg'>
+            <Snackbar open={open} anchorOrigin={{ vertical: 'top', horizontal:'center' }} autoHideDuration={3000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: '500px' }}>
+          <h4>Your order was imported into cart. Please check the Attain app to submit your order.</h4>
+        </Alert>
+      </Snackbar>
+            <Modal onClose={handleCloseModal} open={modalVisible}>
+                <Box style={{width: 500, height: 700, top: '50%',
+  left: '50%', position: "absolute",  backgroundColor: 'white',
+  border: '2px solid #000',
+  boxShadow: 24,
+  padding: 20, transform: 'translate(-50%, -50%)',}}>
+                    <h1>{"Thanks! We have processed " + itemsDetail.length + " out of " + Object.keys(file).length + " items." }</h1>
+                    <h2 style={{marginBottom: 50}}>We are unable to fulfill the following items:</h2>
+                    <List
+    height={400}
+    itemCount={unavailableItemsDetail.length}
+    itemSize={60}
+    width={500}
+  >
+    {Row}
+  </List>
+                    <Button onClick={importItems} variant="contained" style={{
+                                position: "absolute", bottom: 20, right: 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '220px', height: '55px'
+                            }}>Continue</Button>
+                             <Button onClick={handleCloseModal} variant="contained" style={{
+                                position: "absolute", bottom: 20, left  : 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '150px', height: '55px',
+                            }}>Cancel</Button>
+                </Box>
+            </Modal>
             <div className='header'>
                             <p className='header-text'>Attain CSV Ordering</p>
                         </div>
@@ -47,16 +216,18 @@ function Main() {
                                     label="Select Store"
                                     className='dropdown'
                                     displayEmpty
-                                    renderValue={(value) => (value ? value : <em>Select Store</em>)}
+                                    value={store}
+                                    onChange={(event) => setStore(event.target.value)}
+                                    renderValue={(value) => (value !== '' ? value : <em>Select Store</em>)}
                                 >
-                                    <MenuItem value={1}>Store 1</MenuItem>
-                                    <MenuItem value={2}>Store 2</MenuItem>
-                                    <MenuItem value={3}>Store 3</MenuItem>
+                                    <MenuItem value={"Berkeley"}>Berkeley</MenuItem>
+                                  
+                                    
                                 </Select>
                             </div>
                             <Upload />
-                            <Button variant="contained" style={{
-                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '69px', marginTop: '100px'
+                            <Button onClick={generateOrder} variant="contained" style={{
+                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '69px', marginTop: '150px'
                             }}>GENERATE ORDER</Button>
                         </div>
                     </div>
