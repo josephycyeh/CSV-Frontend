@@ -20,7 +20,7 @@
 .outside {
     display: block;
     width: 964px;
-    height: 880px;
+    height: 770px;
     background-color: #FFFFFF;
 }
 
@@ -57,8 +57,8 @@
 
 .upload-container {
     background-color: #F8F8F8;
-    width: 807px;
-    height: 244px
+    width: 80%;
+    height: 20%
 }
 
 .dropzone {

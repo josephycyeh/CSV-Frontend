@@ -125,7 +125,7 @@ function Main() {
     
     function Upload(props) {
         
-      
+
         const onDrop = useCallback((acceptedFiles) => {
             acceptedFiles.forEach((file) => {
                 Papa.parse(file, {
@@ -228,7 +228,7 @@ function Main() {
                             </div>
                             <Upload />
                             <Button onClick={generateOrder} variant="contained" style={{
-                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '69px', marginTop: '150px'
+                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '10%', marginTop: '150px'
                             }}>GENERATE ORDER</Button>
                         </div>
                     </div>
