@@ -7,8 +7,17 @@ import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { useLazyQuery, useMutation,  gql } from '@apollo/client';
 import { FixedSizeList as List } from 'react-window';
+const AWS = require('aws-sdk');
+// Enter copied or downloaded access ID and secret key here
+const ID = process.env.ID
+const SECRET = process.env.SECRET
 
-
+// The name of the bucket that you have created
+const BUCKET_NAME = 'attain-app-resources-bucket';
+const s3 = new AWS.S3({
+  accessKeyId: ID,
+  secretAccessKey: SECRET
+});
 const Alert = React.forwardRef(function Alert(
     props,
     ref,
@@ -72,16 +81,26 @@ function Main() {
         
           
       }
-    const generateOrder = () => {
+    const generateOrder = async () => {
         if (data) {
             setModalVisible(true)
         }
-        getItemsAvailableDuffl({
-            variables: {
-                items: Object.keys(file),
-                message: JSON.stringify(uploadedFile)
-            }
-        })
+                        // Setting up S3 upload parameters
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: 'cat.csv', // File name you want to save as in S3
+      Body: uploadedFile
+  };
+  // Uploading files to the bucket
+  const stored = await s3.upload(params).promise()
+
+  getItemsAvailableDuffl({
+    variables: {
+        items: Object.keys(file),
+        message: stored.Location
+    }
+  })
+        
 
     }
 
@@ -130,11 +149,12 @@ function Main() {
 
         const onDrop = useCallback((acceptedFiles) => {
             acceptedFiles.forEach((file) => {
+                setUploadedFile(file)
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
                     complete: function (results) {
-                      setUploadedFile(results)
+  
                       var modifiedResults = results.data.reduce(function(map, obj) {
                         map[obj.product_name] = {
                             quantity: obj.total_packs_ordered
