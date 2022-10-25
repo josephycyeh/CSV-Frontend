@@ -9,8 +9,9 @@ import { useLazyQuery, useMutation,  gql } from '@apollo/client';
 import { FixedSizeList as List } from 'react-window';
 const AWS = require('aws-sdk');
 // Enter copied or downloaded access ID and secret key here
-const ID = process.env.ID
-const SECRET = process.env.SECRET
+
+const ID = process.env.REACT_APP_ID
+const SECRET = process.env.REACT_APP_SECRET
 
 // The name of the bucket that you have created
 const BUCKET_NAME = 'attain-app-resources-bucket';
