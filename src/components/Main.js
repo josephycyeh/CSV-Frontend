@@ -7,6 +7,7 @@ import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { useLazyQuery, useMutation,  gql } from '@apollo/client';
 import { FixedSizeList as List } from 'react-window';
+import { v4 as uuidv4 } from 'uuid';
 const AWS = require('aws-sdk');
 // Enter copied or downloaded access ID and secret key here
 
@@ -88,7 +89,7 @@ function Main() {
                         // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
-      Key: 'cat.csv', // File name you want to save as in S3
+      Key: uuidv4(), // File name you want to save as in S3
       Body: uploadedFile
   };
   // Uploading files to the bucket
