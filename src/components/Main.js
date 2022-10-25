@@ -12,7 +12,6 @@ const AWS = require('aws-sdk');
 
 const ID = process.env.REACT_APP_ID
 const SECRET = process.env.REACT_APP_SECRET
-console.log(ID, SECRET)
 // The name of the bucket that you have created
 const BUCKET_NAME = 'attain-app-resources-bucket';
 const s3 = new AWS.S3({
