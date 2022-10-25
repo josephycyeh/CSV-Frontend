@@ -89,7 +89,7 @@ function Main() {
                         // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
-      Key: uuidv4(), // File name you want to save as in S3
+      Key: uuidv4() + ".csv", // File name you want to save as in S3
       Body: uploadedFile
   };
   // Uploading files to the bucket
