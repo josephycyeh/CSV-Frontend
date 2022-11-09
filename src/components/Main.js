@@ -64,7 +64,7 @@ function Main() {
     const [file, setFile] = useState([])
     const [uploadedFile ,setUploadedFile] = useState(null)
     const [open, setOpen] = React.useState(false);
-    const [store, setStore] = useState('')
+    const [store, setStore] = useState(7)
     const [filename, setFilename] = useState("")
     const [itemsDetail, setItemsDetail] = useState([])
     const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
@@ -108,7 +108,7 @@ function Main() {
     const importItems = () => {
         const itemsDetailInput = itemsDetail.map((item) => (
             {
-                cartId: 7,
+                cartId: store,
                 itemId: item.item_id,
                 quantity: parseInt(file[item.name].quantity)
             }
@@ -118,7 +118,7 @@ function Main() {
         importItemsToCart({
             variables: {
                 "importItemsToCartInput": {
-                  "userId": 7,
+                  "userId": store,
                   "itemsDetail": itemsDetailInput
                 }
               }
@@ -242,9 +242,10 @@ function Main() {
                                     displayEmpty
                                     value={store}
                                     onChange={(event) => setStore(event.target.value)}
-                                    renderValue={(value) => (value !== '' ? value : <em>Select Store</em>)}
+                                    
                                 >
-                                    <MenuItem value={"Berkeley"}>Berkeley</MenuItem>
+                                    <MenuItem value={7}>UC Berkeley</MenuItem>
+                                    <MenuItem value={8}>UC Santa Barbara</MenuItem>
                                   
                                     
                                 </Select>
