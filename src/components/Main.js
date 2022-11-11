@@ -27,8 +27,8 @@ const Alert = React.forwardRef(function Alert(
   });
   
   const GET_ITEMS_AVAILABLE_DUFFL = gql`
-  query ItemsAvailableDuffl($items: [String], $message: String) {
-    itemsAvailableDuffl(items: $items, message: $message) {
+  query ItemsAvailableDuffl($businessId: ID, $supplier: String, $items: [String], $message: String) {
+    itemsAvailableDuffl(businessId: $businessId, supplier: $supplier, items: $items, message: $message) {
       item_id
       name
     }
@@ -65,6 +65,7 @@ function Main() {
     const [uploadedFile ,setUploadedFile] = useState(null)
     const [open, setOpen] = React.useState(false);
     const [store, setStore] = useState(7)
+    const [supplier, setSupplier] = useState("Coremark")
     const [filename, setFilename] = useState("")
     const [itemsDetail, setItemsDetail] = useState([])
     const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
@@ -72,6 +73,8 @@ function Main() {
     const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(GET_ITEMS_AVAILABLE_DUFFL);
     const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
 
+
+    const suppliers = ["Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka"]
     const handleClose = () => {
         setOpen(false);
       };
@@ -97,6 +100,8 @@ function Main() {
 
   getItemsAvailableDuffl({
     variables: {
+        businessId: store,
+        supplier: supplier,
         items: Object.keys(file),
         message: stored.Location
     }
@@ -250,6 +255,28 @@ function Main() {
                                     
                                 </Select>
                             </div>
+                            {store === 9 &&<div style={{marginTop: 10, marginBottom: 20}}>
+                                <InputLabel id="demo-simple-select-label">Supplier</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    label="Select Store"
+                                    className='dropdown'
+                                    displayEmpty
+                                    value={supplier}
+                                    onChange={(event) => setSupplier(event.target.value)}
+                                    
+                                >
+                                  {
+                                    suppliers.map((supplier) => {
+                                      return <MenuItem value={supplier}>{supplier}</MenuItem>
+                                    })
+                                  }
+                                    
+                                  
+                                    
+                                </Select>
+                            </div>}
                             <Upload />
                             <Button onClick={generateOrder} variant="contained" style={{
                                 color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '10%'
