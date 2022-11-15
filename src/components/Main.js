@@ -27,10 +27,11 @@ const Alert = React.forwardRef(function Alert(
   });
   
   const GET_ITEMS_AVAILABLE_DUFFL = gql`
-  query ItemsAvailableDuffl($businessId: ID, $supplier: String, $items: [String], $message: String) {
+  query ItemsAvailableDuffl($businessId: ID, $supplier: String, $items: [ItemAvailableInput], $message: String) {
     itemsAvailableDuffl(businessId: $businessId, supplier: $supplier, items: $items, message: $message) {
       item_id
       name
+      mapped
     }
   }
 `;
@@ -86,9 +87,6 @@ function Main() {
           
       }
     const generateOrder = async () => {
-        if (data) {
-            setModalVisible(true)
-        }
                         // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
@@ -98,14 +96,28 @@ function Main() {
   // Uploading files to the bucket
   const stored = await s3.upload(params).promise()
 
-  getItemsAvailableDuffl({
-    variables: {
-        businessId: store,
-        supplier: supplier,
-        items: Object.keys(file),
-        message: stored.Location
+  const items = Object.entries(file).map(([key, value]) => (
+    {
+      name: key,
+      unit_size: parseInt(value.unit_size),
+      price: parseInt(value.price)
     }
-  })
+  ))
+  
+  try {
+    getItemsAvailableDuffl({
+      variables: {
+          businessId: store,
+          supplier: supplier,
+          items: items,
+          message: stored.Location
+      }
+    })
+  }
+  catch (error) {
+    console.log(error)
+  }
+
         
 
     }
@@ -118,7 +130,6 @@ function Main() {
                 quantity: parseInt(file[item.name].quantity)
             }
         ))
-        console.log(itemsDetailInput)
         
         importItemsToCart({
             variables: {
@@ -142,8 +153,8 @@ function Main() {
     useEffect(() => {
         if (!loading && data) {
             const items = data.itemsAvailableDuffl
-            const unavailableItems = items.filter((item) => item.item_id === null)
-            const availableItems = items.filter((item) => item.item_id !== null)
+            const unavailableItems = items.filter((item) => item.mapped === false)
+            const availableItems = items.filter((item) => item.mapped === true)
             setUnavailableItemsDetail(unavailableItems)
             setItemsDetail(availableItems)
             setModalVisible(true)
@@ -151,8 +162,6 @@ function Main() {
     }, [data, loading])
     
     function Upload(props) {
-        
-
         const onDrop = useCallback((acceptedFiles) => {
             acceptedFiles.forEach((file) => {
                 setUploadedFile(file)
@@ -163,7 +172,10 @@ function Main() {
   
                       var modifiedResults = results.data.reduce(function(map, obj) {
                         map[obj.product_name] = {
-                            quantity: obj.total_packs_ordered
+                            quantity: obj.total_packs_ordered,
+                            unit_size: obj.pack_size,
+                            price: obj.pack_price,
+                            supplier: obj.supplier
                         };
                         return map;
                     }, {});
@@ -211,8 +223,9 @@ function Main() {
   border: '2px solid #000',
   boxShadow: 24,
   padding: 20, transform: 'translate(-50%, -50%)',}}>
-                    <h1>{"Thanks! We have processed " + itemsDetail.length + " out of " + Object.keys(file).length + " items." }</h1>
-                    <h2 style={{marginBottom: 50}}>We are unable to fulfill the following items:</h2>
+                    <h1>{"Thanks! We have processed your order"}</h1>
+                    <h2>The following items are unmapped, but we will still try to process them if possible:</h2>
+                    <p style={{marginBottom: 50}}>*they will still appear in your cart</p>
                     <List
     height={400}
     itemCount={unavailableItemsDetail.length}
@@ -255,7 +268,7 @@ function Main() {
                                     
                                 </Select>
                             </div>
-                            {store === 9 &&<div style={{marginTop: 10, marginBottom: 20}}>
+                            <div style={{marginTop: 10, marginBottom: 20}}>
                                 <InputLabel id="demo-simple-select-label">Supplier</InputLabel>
                                 <Select
                                     labelId="demo-simple-select-label"
@@ -276,7 +289,7 @@ function Main() {
                                   
                                     
                                 </Select>
-                            </div>}
+                            </div>
                             <Upload />
                             <Button onClick={generateOrder} variant="contained" style={{
                                 color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '10%'
