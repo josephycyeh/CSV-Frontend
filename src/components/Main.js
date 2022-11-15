@@ -100,7 +100,7 @@ function Main() {
     {
       name: key,
       unit_size: parseInt(value.unit_size),
-      price: parseInt(value.price)
+      price: parseFloat(value.price)
     }
   ))
   
@@ -123,6 +123,7 @@ function Main() {
     }
 
     const importItems = () => {
+      
         const itemsDetailInput = itemsDetail.map((item) => (
             {
                 cartId: store,
@@ -130,7 +131,9 @@ function Main() {
                 quantity: parseInt(file[item.name].quantity)
             }
         ))
+
         
+       
         importItemsToCart({
             variables: {
                 "importItemsToCartInput": {
@@ -154,9 +157,8 @@ function Main() {
         if (!loading && data) {
             const items = data.itemsAvailableDuffl
             const unavailableItems = items.filter((item) => item.mapped === false)
-            const availableItems = items.filter((item) => item.mapped === true)
             setUnavailableItemsDetail(unavailableItems)
-            setItemsDetail(availableItems)
+            setItemsDetail(items)
             setModalVisible(true)
         }
     }, [data, loading])
@@ -175,7 +177,6 @@ function Main() {
                             quantity: obj.total_packs_ordered,
                             unit_size: obj.pack_size,
                             price: obj.pack_price,
-                            supplier: obj.supplier
                         };
                         return map;
                     }, {});
