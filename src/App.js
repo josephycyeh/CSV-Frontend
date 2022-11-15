@@ -5,6 +5,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
 const client = new ApolloClient({
   uri: 'https://attain-server.herokuapp.com',
+  
   cache: new InMemoryCache(),
 });
 
