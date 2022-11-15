@@ -72,6 +72,7 @@ function Main() {
     const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
     const [modalVisible, setModalVisible] = useState(false)
     const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(GET_ITEMS_AVAILABLE_DUFFL);
+    const [url, setUrl] = useState("")
     const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
 
 
@@ -95,6 +96,7 @@ function Main() {
   };
   // Uploading files to the bucket
   const stored = await s3.upload(params).promise()
+  setUrl(stored.Location)
 
   const items = Object.entries(file).map(([key, value]) => (
     {
@@ -138,7 +140,8 @@ function Main() {
             variables: {
                 "importItemsToCartInput": {
                   "userId": store,
-                  "itemsDetail": itemsDetailInput
+                  "itemsDetail": itemsDetailInput,
+                  "message": url
                 }
               }
         })
