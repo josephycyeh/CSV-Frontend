@@ -88,6 +88,7 @@ function Main() {
           
       }
     const generateOrder = async () => {
+
                         // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
@@ -105,6 +106,8 @@ function Main() {
       price: parseFloat(value.price)
     }
   ))
+  
+  console.log(file)
   
   try {
     getItemsAvailableDuffl({
@@ -133,7 +136,7 @@ function Main() {
                 quantity: parseInt(file[item.name].quantity)
             }
         ))
-
+        console.log(itemsDetailInput)
         
        
         importItemsToCart({
