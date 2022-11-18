@@ -107,7 +107,6 @@ function Main() {
     }
   ))
   
-  console.log(file)
   
   try {
     getItemsAvailableDuffl({
@@ -214,7 +213,6 @@ function Main() {
             </section>
         );
     }
-
 
     return (
         <>
