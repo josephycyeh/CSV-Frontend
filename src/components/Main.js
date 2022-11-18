@@ -1,6 +1,7 @@
 import React, {useCallback, useState, useEffect} from 'react'
 import './Main.css'
-import { Button, InputLabel, MenuItem, Select, Modal, Box, Snackbar} from '@mui/material'
+import { Button, InputLabel, MenuItem, Select, Modal, Box, Snackbar, CircularProgress} from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useDropzone } from 'react-dropzone'
@@ -67,6 +68,8 @@ function Main() {
     const [open, setOpen] = React.useState(false);
     const [store, setStore] = useState(7)
     const [supplier, setSupplier] = useState("Coremark")
+    const [generateOrderLoading, setGenerateOrderLoading] = useState(false)
+    const [importItemsLoading, setImportItemsLoading] = useState(false)
     const [filename, setFilename] = useState("")
     const [itemsDetail, setItemsDetail] = useState([])
     const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
@@ -88,7 +91,7 @@ function Main() {
           
       }
     const generateOrder = async () => {
-
+      setGenerateOrderLoading(true)
                         // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
@@ -96,20 +99,17 @@ function Main() {
       Body: uploadedFile
   };
   // Uploading files to the bucket
-  const stored = await s3.upload(params).promise()
-  setUrl(stored.Location)
-
-  const items = Object.entries(file).map(([key, value]) => (
-    {
-      name: key,
-      unit_size: parseInt(value.unit_size),
-      price: parseFloat(value.price)
-    }
-  ))
-  
-  
   try {
-    getItemsAvailableDuffl({
+    const stored = await s3.upload(params).promise()
+    setUrl(stored.Location)
+    const items = Object.entries(file).map(([key, value]) => (
+      {
+        name: key,
+        unit_size: parseInt(value.unit_size),
+        price: parseFloat(value.price)
+      }
+    ))
+    await getItemsAvailableDuffl({
       variables: {
           businessId: store,
           supplier: supplier,
@@ -121,14 +121,25 @@ function Main() {
   catch (error) {
     console.log(error)
   }
+  
+
+  
+  
+
+
+
+  setGenerateOrderLoading(false)
+
+
 
         
 
     }
 
-    const importItems = () => {
-      
-        const itemsDetailInput = itemsDetail.map((item) => (
+    const importItems = async() => {
+        setImportItemsLoading(true)
+        try {
+          const itemsDetailInput = itemsDetail.map((item) => (
             {
                 cartId: store,
                 itemId: item.item_id,
@@ -138,7 +149,7 @@ function Main() {
         console.log(itemsDetailInput)
         
        
-        importItemsToCart({
+        await importItemsToCart({
             variables: {
                 "importItemsToCartInput": {
                   "userId": store,
@@ -149,6 +160,21 @@ function Main() {
         })
         handleCloseModal()
         setOpen(true)
+        } 
+        catch (error) {
+          console.log(error)
+        }
+
+
+
+
+
+
+
+
+        setImportItemsLoading(false)
+
+       
     }
 
 
@@ -198,7 +224,7 @@ function Main() {
   
 
         return (
-            <section className="upload-container">
+            <section className="upload-container" >
                 <div {...getRootProps({ className: 'dropzone' })}>
                     <input {...getInputProps()} />
                     <div className='upload-txt-wrap'>
@@ -241,21 +267,18 @@ function Main() {
   </List>
                     <Button onClick={importItems} variant="contained" style={{
                                 position: "absolute", bottom: 20, right: 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '220px', height: '55px'
-                            }}>Continue</Button>
+                            }}>{importItemsLoading ? <CircularProgress/> : 'Continue'}</Button>
                              <Button onClick={handleCloseModal} variant="contained" style={{
                                 position: "absolute", bottom: 20, left  : 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '150px', height: '55px',
                             }}>Cancel</Button>
                 </Box>
             </Modal>
-            <div className='header'>
+                        <div className='header'>
                             <p className='header-text'>Attain CSV Ordering</p>
                         </div>
-                <div className='center'>
-    
-                    <div className='outside'>
-                      
+  
                         <div className='btn-wrapper'>
-                            <div>
+                            <div style={{marginTop: 20}}>
                                 <InputLabel id="demo-simple-select-label">Store</InputLabel>
                                 <Select
                                     labelId="demo-simple-select-label"
@@ -297,12 +320,19 @@ function Main() {
                                 </Select>
                             </div>
                             <Upload />
+                            <div style={{marginTop: 50}}>
                             <Button onClick={generateOrder} variant="contained" style={{
-                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '10%'
-                            }}>GENERATE ORDER</Button>
+                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '50px'
+                            }}>
+                              
+                              
+                              { generateOrderLoading ? <CircularProgress /> : 'GENERATE ORDER'}
+                              
+                              </Button>
+                            
+                            </div>
                         </div>
-                    </div>
-                </div>
+            
             </div>
         </>
     )
