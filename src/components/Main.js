@@ -320,7 +320,7 @@ function Main() {
                                 </Select>
                             </div>
                             <Upload />
-                            <div style={{marginTop: 50}}>
+                            <div style={{marginTop: 20}}>
                             <Button onClick={generateOrder} variant="contained" style={{
                                 color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '50px'
                             }}>
