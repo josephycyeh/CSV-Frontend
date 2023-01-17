@@ -121,19 +121,8 @@ function Main() {
   catch (error) {
     console.log(error)
   }
-  
-
-  
-  
-
-
 
   setGenerateOrderLoading(false)
-
-
-
-        
-
     }
 
     const importItems = async() => {
@@ -166,15 +155,8 @@ function Main() {
         }
 
 
-
-
-
-
-
-
         setImportItemsLoading(false)
 
-       
     }
 
 
@@ -183,7 +165,7 @@ function Main() {
             {unavailableItemsDetail[index].name}
         </div>
       );
-    
+   
     useEffect(() => {
         if (!loading && data) {
             const items = data.itemsAvailableDuffl
@@ -220,9 +202,6 @@ function Main() {
           }, [])
 
         const { acceptedFiles, getRootProps, getInputProps } = useDropzone({onDrop});
-
-  
-
         return (
             <section className="upload-container" >
                 <div {...getRootProps({ className: 'dropzone' })}>
@@ -239,7 +218,6 @@ function Main() {
             </section>
         );
     }
-
     return (
         <>
             <div className='main-bg'>
@@ -287,8 +265,7 @@ function Main() {
                                     className='dropdown'
                                     displayEmpty
                                     value={store}
-                                    onChange={(event) => setStore(event.target.value)}
-                                    
+                                    onChange={(event) => setStore(event.target.value)}                     
                                 >
                                     <MenuItem value={7}>UC Berkeley</MenuItem>
                                     <MenuItem value={9}>UC Santa Barbara</MenuItem>
@@ -299,8 +276,6 @@ function Main() {
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
                                     <MenuItem value={14}>Handle USC</MenuItem>
-                                    
-                                    
                                 </Select>
                             </div>
                             <div style={{marginTop: 10, marginBottom: 20}}>
