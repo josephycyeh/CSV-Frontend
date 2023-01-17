@@ -79,7 +79,7 @@ function Main() {
     const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
 
 
-    const suppliers = ["Pitco Foods", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods"]
+    const suppliers = ["Pitco Foods", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods" ]
     const handleClose = () => {
         setOpen(false);
       };
@@ -297,7 +297,8 @@ function Main() {
                                     <MenuItem value={12}>ASU</MenuItem>
                                     <MenuItem value={13}>UofA</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
-                                  
+                                    <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
+                                    <MenuItem value={14}>Handle USC</MenuItem>
                                     
                                 </Select>
                             </div>
