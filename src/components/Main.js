@@ -288,7 +288,6 @@ function Main() {
                                     displayEmpty
                                     value={supplier}
                                     onChange={(event) => setSupplier(event.target.value)}
-                                    
                                 >
                                   {
                                     suppliers.map((supplier) => {
