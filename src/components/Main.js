@@ -199,7 +199,6 @@ function Main() {
             })
             
           }, [])
-
         const { acceptedFiles, getRootProps, getInputProps } = useDropzone({onDrop});
         return (
             <section className="upload-container" >
