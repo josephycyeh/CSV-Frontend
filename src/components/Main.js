@@ -26,7 +26,6 @@ const Alert = React.forwardRef(function Alert(
   ) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
-  
   const GET_ITEMS_AVAILABLE_DUFFL = gql`
   query ItemsAvailableDuffl($businessId: ID, $supplier: String, $items: [ItemAvailableInput], $message: String) {
     itemsAvailableDuffl(businessId: $businessId, supplier: $supplier, items: $items, message: $message) {
