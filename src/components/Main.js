@@ -275,7 +275,7 @@ function Main() {
                                     <MenuItem value={13}>UofA</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
-                                    <MenuItem value={15}>Quickie SB</MenuItem>
+                                    <MenuItem value={17}>Snag Boulder</MenuItem>
                                 </Select>
                             </div>
                             <div style={{marginTop: 10, marginBottom: 20}}>
