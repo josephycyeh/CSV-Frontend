@@ -274,7 +274,7 @@ function Main() {
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
                                     {/* <MenuItem value={15}>Quickie SLO</MenuItem> */}
-                                    <MenuItem value={14}>Handle Davis</MenuItem>
+                                    <MenuItem value={14}>Handle UC Davis</MenuItem>
                                 </Select>
                             </div>
                             <div style={{marginTop: 10, marginBottom: 20}}>
