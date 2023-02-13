@@ -6,9 +6,10 @@ import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
-import { useLazyQuery, useMutation,  gql } from '@apollo/client';
+import { useLazyQuery, useMutation, useQuery, gql } from '@apollo/client';
 import { FixedSizeList as List } from 'react-window';
 import { v4 as uuidv4 } from 'uuid';
+import { getAuth, signOut } from "firebase/auth";
 const AWS = require('aws-sdk');
 // Enter copied or downloaded access ID and secret key here
 
@@ -59,7 +60,17 @@ mutation ImportItemsToCart($importItemsToCartInput: importItemsToCartInput!) {
     }
   }`
 
-function Main() {
+  const GET_USERS = gql`
+  query Users($getUsersInput: GetUsersInput) {
+    users(getUsersInput: $getUsersInput) {
+      id
+      name
+      user_name
+    }
+  }`
+
+
+function Main({userId}) {
 
       
     const [file, setFile] = useState([])
@@ -74,9 +85,21 @@ function Main() {
     const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
     const [modalVisible, setModalVisible] = useState(false)
     const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(GET_ITEMS_AVAILABLE_DUFFL);
+    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, {
+      variables: {
+        getUsersInput: {
+          ids: [userId]
+        }
+      }
+    });
+    
+
     const [url, setUrl] = useState("")
     const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
+  
 
+    const auth = getAuth()
+    console.log(auth.currentUser)
 
     const suppliers = ["Pitco Foods", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods" ]
     const handleClose = () => {
@@ -174,6 +197,12 @@ function Main() {
             setModalVisible(true)
         }
     }, [data, loading])
+
+    useEffect(() => {
+      if (!getUsersLoading && getUsersData) {
+        setStore(getUsersData.users[0].id)
+      }
+    }, [getUsersData, getUsersLoading])
     
     function Upload(props) {
         const onDrop = useCallback((acceptedFiles) => {
@@ -216,6 +245,16 @@ function Main() {
             </section>
         );
     }
+
+
+    if (getUsersError) {
+      return null
+    }
+    if (getUsersLoading && !getUsersData) {
+      return null
+    }
+
+
     return (
         <>
             <div className='main-bg'>
@@ -251,6 +290,7 @@ function Main() {
             </Modal>
                         <div className='header'>
                             <p className='header-text'>Attain CSV Ordering</p>
+                            <Button variant="contained" onClick={async () => await signOut(auth)} style={{position: "absolute", top: 0, right: 15}}>Log out</Button>
                         </div>
   
                         <div className='btn-wrapper'>
@@ -265,15 +305,15 @@ function Main() {
                                     value={store}
                                     onChange={(event) => setStore(event.target.value)}                     
                                 >
-                                    <MenuItem value={7}>UC Berkeley</MenuItem>
-                                    <MenuItem value={9}>UC Santa Barbara</MenuItem>
+                                    <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem>
+                                    {/* <MenuItem value={9}>UC Santa Barbara</MenuItem>
                                     <MenuItem value={10}>USC</MenuItem>
                                     <MenuItem value={11}>UCLA</MenuItem>
                                     <MenuItem value={12}>ASU</MenuItem>
                                     <MenuItem value={13}>UofA</MenuItem>
                                     <MenuItem value={20}>UT-Austin</MenuItem>
                                     <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
-                                    <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
+                                    <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem> */}
                                     {/* <MenuItem value={15}>Quickie SLO</MenuItem> */}
                                     {/* <MenuItem value={14}>Handle UC Davis</MenuItem> */}
                                 </Select>
