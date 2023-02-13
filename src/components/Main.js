@@ -269,9 +269,9 @@ function Main({userId}) {
   border: '2px solid #000',
   boxShadow: 24,
   padding: 20, transform: 'translate(-50%, -50%)',}}>
-                    <h1>{"Thanks! We have processed your order"}</h1>
-                    <h2>The following items are unmapped, but we will still try to process them if possible:</h2>
-                    <p style={{marginBottom: 50}}>*they will still appear in your cart</p>
+                    <h1 style={{marginBottom: 20}}>{"Thanks! We have processed your order"}</h1>
+                    {/* <h2>The following items are unmapped, but we will still try to process them if possible:</h2>
+                    <p style={{marginBottom: 50}}>*they will still appear in your cart</p> */}
                     <List
     height={400}
     itemCount={unavailableItemsDetail.length}
