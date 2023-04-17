@@ -127,7 +127,8 @@ function Main({userId}) {
       {
         name: key,
         unit_size: parseInt(value.unit_size),
-        price: parseFloat(value.price)
+        price: parseFloat(value.price),
+        upc: value.upc
       }
     ))
     await getItemsAvailableDuffl({
