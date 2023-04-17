@@ -120,6 +120,7 @@ function Main({userId}) {
       Body: uploadedFile
   };
   // Uploading files to the bucket
+  
   try {
     const stored = await s3.upload(params).promise()
     setUrl(stored.Location)
