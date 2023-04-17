@@ -137,7 +137,7 @@ function Main({userId}) {
           businessId: store,
           supplier: supplier,
           items: items,
-          message: stored.Location
+          message: store.Location
       }
     })
   }
@@ -219,6 +219,7 @@ function Main({userId}) {
                             quantity: obj.total_packs_ordered,
                             unit_size: obj.pack_size,
                             price: obj.pack_price,
+                            upc: obj.upc
                         };
                         return map;
                     }, {});
