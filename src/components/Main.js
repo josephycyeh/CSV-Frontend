@@ -137,7 +137,7 @@ function Main({userId}) {
           businessId: store,
           supplier: supplier,
           items: items,
-          message: store.Location
+          message: stored.Location
       }
     })
   }
