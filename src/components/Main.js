@@ -132,6 +132,7 @@ function Main({userId}) {
         upc: value.upc
       }
     ))
+    
     await getItemsAvailableDuffl({
       variables: {
           businessId: store,
