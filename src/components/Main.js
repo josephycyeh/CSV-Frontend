@@ -77,7 +77,7 @@ function Main({userId}) {
     const [uploadedFile ,setUploadedFile] = useState(null)
     const [open, setOpen] = React.useState(false);
     const [store, setStore] = useState(7)
-    const [supplier, setSupplier] = useState("Coremark")
+    const [supplier, setSupplier] = useState('')
     const [generateOrderLoading, setGenerateOrderLoading] = useState(false)
     const [importItemsLoading, setImportItemsLoading] = useState(false)
     const [filename, setFilename] = useState("")
@@ -112,8 +112,10 @@ function Main({userId}) {
           
       }
     const generateOrder = async () => {
+
+  
       setGenerateOrderLoading(true)
-                        // Setting up S3 upload parameters
+    // Setting up S3 upload parameters
     const params = {
       Bucket: BUCKET_NAME,
       Key: uuidv4() + ".csv", // File name you want to save as in S3
@@ -133,6 +135,8 @@ function Main({userId}) {
       }
     ))
     
+
+
     await getItemsAvailableDuffl({
       variables: {
           businessId: store,
@@ -151,6 +155,7 @@ function Main({userId}) {
 
     const importItems = async() => {
         setImportItemsLoading(true)
+       
         try {
           const itemsDetailInput = itemsDetail.map((item) => (
             {
@@ -193,6 +198,7 @@ function Main({userId}) {
     useEffect(() => {
         if (!loading && data) {
             const items = data.itemsAvailableDuffl
+            console.log("here:" + items.length)
             const unavailableItems = items.filter((item) => item.mapped === false)
             setUnavailableItemsDetail(unavailableItems)
             setItemsDetail(items)
@@ -214,7 +220,21 @@ function Main({userId}) {
                     header: true,
                     skipEmptyLines: true,
                     complete: function (results) {
-  
+                    
+
+                      if (supplier === 'HLA') {
+                        var modifiedResults = results.data.reduce(function(map, obj) {
+                          
+                          map[obj["{UPC}"]] = {
+                              quantity: obj["{QTY}"],
+                              upc: obj["{UPC}"]
+                          };
+                          return map;
+                          
+                        
+                      }, {});
+                      }
+                      else {
                       var modifiedResults = results.data.reduce(function(map, obj) {
                         map[obj.product_name] = {
                             quantity: obj.total_packs_ordered,
@@ -223,7 +243,11 @@ function Main({userId}) {
                             upc: obj.upc
                         };
                         return map;
+                        
+                      
                     }, {});
+                  }
+
                     setFile(modifiedResults)
                       setFilename(file.name)
                     },
@@ -342,7 +366,7 @@ function Main({userId}) {
                                     
                                 </Select>
                             </div>
-                            <Upload />
+                            {supplier && <Upload />}
                             <div style={{marginTop: 20}}>
                             <Button onClick={generateOrder} variant="contained" style={{
                                 color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '50px'
