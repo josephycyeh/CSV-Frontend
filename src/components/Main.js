@@ -100,7 +100,7 @@ function Main({userId}) {
 
     const auth = getAuth()
 
-    const suppliers = ["Pitco Foods", "Food Snacks", "HLA", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods", "Columbia Distributors", "Magic Ice Cube", "Walmart", "Southern Glazer's Wine and Spirits", "IK Distribution", "B2B - On Consignment", "Other", "UMPQUA Dairy", "Bend", "UNFI EO", "Soda Man USA", "Wall Street Distribution", "Jenis Ice Cream", "Handle", "Restaurant Depot", "Pressed Juicery", "Rancho Cold Brew", "Faire", "Mable", "GEMENI", "OCM", "RIVERA", "Capital Reyes Distributing", "Austin Wholesale Supply", "Sysco", "JFC" ]
+    const suppliers = ["Pitco Foods", "Food Snacks", "HLA", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods", "Columbia Distributors", "Magic Ice Cube", "Walmart", "Southern Glazer's Wine and Spirits", "IK Distribution", "B2B - On Consignment", "Other", "UMPQUA Dairy", "Bend", "UNFI EO", "Soda Man USA", "Wall Street Distribution", "Jenis Ice Cream", "Handle", "Restaurant Depot", "Pressed Juicery", "Rancho Cold Brew", "Faire", "Mable", "GEMENI", "OCM", "RIVERA", "Capital Reyes Distributing", "Austin Wholesale Supply", "Sysco", "JFC", "Vistar"]
     const handleClose = () => {
         setOpen(false);
       };
@@ -124,8 +124,8 @@ function Main({userId}) {
   // Uploading files to the bucket
   
   try {
-    const stored = await s3.upload(params).promise()
-    setUrl(stored.Location)
+    // const stored = await s3.upload(params).promise()
+    // setUrl(stored.Location)
     const items = Object.entries(file).map(([key, value]) => (
       {
         name: key,
@@ -142,7 +142,7 @@ function Main({userId}) {
           businessId: store,
           supplier: supplier,
           items: items,
-          message: stored.Location
+          message:''
       }
     })
   }
@@ -155,7 +155,7 @@ function Main({userId}) {
 
     const importItems = async() => {
         setImportItemsLoading(true)
-       
+        
         try {
           const itemsDetailInput = itemsDetail.map((item) => (
             {
