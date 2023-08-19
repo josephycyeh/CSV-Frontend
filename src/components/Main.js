@@ -124,8 +124,8 @@ function Main({userId}) {
   // Uploading files to the bucket
   
   try {
-    // const stored = await s3.upload(params).promise()
-    // setUrl(stored.Location)
+    const stored = await s3.upload(params).promise()
+    setUrl(stored.Location)
     const items = Object.entries(file).map(([key, value]) => (
       {
         name: key,
@@ -142,7 +142,7 @@ function Main({userId}) {
           businessId: store,
           supplier: supplier,
           items: items,
-          message:''
+          message: stored.Location
       }
     })
   }
