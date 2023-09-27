@@ -332,14 +332,24 @@ function Main({userId}) {
                                     value={store}
                                     onChange={(event) => setStore(event.target.value)}                     
                                 >
-                                    {getUsersData.users[0].id === 7 ? <>
-                                    <MenuItem value={7}>UC Santa Barbara</MenuItem>
+                                 
+                                 {/* <MenuItem value={7}>UC Berkeley</MenuItem>
                                     <MenuItem value={9}>UC Santa Barbara</MenuItem>
                                     <MenuItem value={10}>USC</MenuItem>
                                     <MenuItem value={11}>UCLA</MenuItem>
                                     <MenuItem value={12}>ASU</MenuItem>
                                     <MenuItem value={13}>UofA</MenuItem>
-                                    <MenuItem value={20}>UT-Austin</MenuItem></> : <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem>}
+                                    <MenuItem value={20}>UT-Austin</MenuItem>< */}
+                                 {getUsersData.users[0].id === '11' ? 
+                                 [{id: 7, name: 'UC Berkeley'}, 
+                                 {id: 9, name: 'UC Santa Barbara'}, 
+                                 {id: 10, name: 'USC'},
+                                 {id: 11, name: 'UCLA'},
+                                 {id: 12, name: 'ASU'},
+                                 {id: 13, name: 'UofA'},
+                                 {id: 20, name: 'UT-Austin'}].map((store) => <MenuItem value={store.id}>{store.name}</MenuItem>) : <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem> }
+
+                                 
                                     
                       
                                 </Select>
