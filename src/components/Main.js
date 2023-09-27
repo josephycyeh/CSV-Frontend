@@ -332,17 +332,16 @@ function Main({userId}) {
                                     value={store}
                                     onChange={(event) => setStore(event.target.value)}                     
                                 >
-                                    <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem>
-                                    {/* <MenuItem value={9}>UC Santa Barbara</MenuItem>
+                                    {getUsersData.users[0].id === 7 ? <>
+                                    <MenuItem value={7}>UC Santa Barbara</MenuItem>
+                                    <MenuItem value={9}>UC Santa Barbara</MenuItem>
                                     <MenuItem value={10}>USC</MenuItem>
                                     <MenuItem value={11}>UCLA</MenuItem>
                                     <MenuItem value={12}>ASU</MenuItem>
                                     <MenuItem value={13}>UofA</MenuItem>
-                                    <MenuItem value={20}>UT-Austin</MenuItem>
-                                    <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem>
-                                    <MenuItem value={1}>Attain Admin (Berkeley)</MenuItem> */}
-                                    {/* <MenuItem value={15}>Quickie SLO</MenuItem> */}
-                                    {/* <MenuItem value={14}>Handle UC Davis</MenuItem> */}
+                                    <MenuItem value={20}>UT-Austin</MenuItem></> : <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem>}
+                                    
+                      
                                 </Select>
                             </div>
                             <div style={{marginTop: 10, marginBottom: 20}}>
