@@ -100,7 +100,7 @@ function Main({userId}) {
 
     const auth = getAuth()
 
-    const suppliers = ["Pitco Foods", "Food Snacks", "HLA", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods", "Columbia Distributors", "Magic Ice Cube", "Walmart", "Southern Glazer's Wine and Spirits", "IK Distribution", "B2B - On Consignment", "Other", "UMPQUA Dairy", "Bend", "UNFI EO", "Soda Man USA", "Wall Street Distribution", "Jenis Ice Cream", "Handle", "Restaurant Depot", "Pressed Juicery", "Rancho Cold Brew", "Faire", "Mable", "GEMENI", "OCM", "RIVERA", "Capital Reyes Distributing", "Austin Wholesale Supply", "Sysco", "JFC", "Vistar"]
+    const suppliers = ["Pitco Foods", "Food Snacks", "HLA", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods", "Columbia Distributors", "Magic Ice Cube", "Walmart", "Southern Glazer's Wine and Spirits", "IK Distribution", "B2B - On Consignment", "Other", "UMPQUA Dairy", "Bend", "UNFI EO", "Soda Man USA", "Wall Street Distribution", "Jenis Ice Cream", "Handle", "Restaurant Depot", "Pressed Juicery", "Rancho Cold Brew", "Faire", "Mable", "GEMENI", "OCM", "RIVERA", "Capital Reyes Distributing", "Austin Wholesale Supply", "Sysco", "JFC", "Vistar", "Mipod Wholesale"]
     const handleClose = () => {
         setOpen(false);
       };
@@ -333,13 +333,7 @@ function Main({userId}) {
                                     onChange={(event) => setStore(event.target.value)}                     
                                 >
                                  
-                                 {/* <MenuItem value={7}>UC Berkeley</MenuItem>
-                                    <MenuItem value={9}>UC Santa Barbara</MenuItem>
-                                    <MenuItem value={10}>USC</MenuItem>
-                                    <MenuItem value={11}>UCLA</MenuItem>
-                                    <MenuItem value={12}>ASU</MenuItem>
-                                    <MenuItem value={13}>UofA</MenuItem>
-                                    <MenuItem value={20}>UT-Austin</MenuItem>< */}
+                              
                                  {getUsersData.users[0].id === '11' ? 
                                  [{id: 7, name: 'UC Berkeley'}, 
                                  {id: 9, name: 'UC Santa Barbara'}, 
