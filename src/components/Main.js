@@ -287,29 +287,29 @@ function Main({userId}) {
             <div className='main-bg'>
             <Snackbar open={open} anchorOrigin={{ vertical: 'top', horizontal:'center' }} autoHideDuration={3000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success" sx={{ width: '500px' }}>
-          <h4>Your order was imported into cart. Please check the Attain app to submit your order.</h4>
+          <h4>Your order was submitted! Please check the Attain app track your order.</h4>
         </Alert>
       </Snackbar>
             <Modal onClose={handleCloseModal} open={modalVisible}>
-                <Box style={{width: 500, height: 700, top: '50%',
+                <Box style={{width: 500, height: 500, top: '50%',
   left: '50%', position: "absolute",  backgroundColor: 'white',
   border: '2px solid #000',
   boxShadow: 24,
   padding: 20, transform: 'translate(-50%, -50%)',}}>
-                    <h1 style={{marginBottom: 20}}>{"Thanks! We have processed your order"}</h1>
+                    <h1 style={{marginBottom: 20}}>{"Thanks! Your CSV file has been uploaded. Click below to submit your order."}</h1>
                     {/* <h2>The following items are unmapped, but we will still try to process them if possible:</h2>
                     <p style={{marginBottom: 50}}>*they will still appear in your cart</p> */}
-                    <List
+                    {/* <List
     height={400}
     itemCount={unavailableItemsDetail.length}
     itemSize={60}
     width={500}
   >
     {Row}
-  </List>
+  </List> */}
                     <Button onClick={importItems} variant="contained" style={{
                                 position: "absolute", bottom: 20, right: 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '220px', height: '55px'
-                            }}>{importItemsLoading ? <CircularProgress/> : 'Continue'}</Button>
+                            }}>{importItemsLoading ? <CircularProgress/> : 'Submit Order'}</Button>
                              <Button onClick={handleCloseModal} variant="contained" style={{
                                 position: "absolute", bottom: 20, left  : 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '150px', height: '55px',
                             }}>Cancel</Button>
