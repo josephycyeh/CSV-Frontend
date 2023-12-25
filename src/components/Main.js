@@ -1,44 +1,61 @@
-import React, {useCallback, useState, useEffect} from 'react'
-import './Main.css'
-import { Button, InputLabel, MenuItem, Select, Modal, Box, Snackbar, CircularProgress} from '@mui/material'
-import LoadingButton from '@mui/lab/LoadingButton';
-import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { useDropzone } from 'react-dropzone'
-import Papa from 'papaparse'
-import { useLazyQuery, useMutation, useQuery, gql } from '@apollo/client';
-import { FixedSizeList as List } from 'react-window';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useCallback, useState, useEffect } from "react";
+import "./Main.css";
+import {
+  Button,
+  InputLabel,
+  MenuItem,
+  Select,
+  Modal,
+  Box,
+  Snackbar,
+  CircularProgress,
+} from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import { useDropzone } from "react-dropzone";
+import Papa from "papaparse";
+import { useLazyQuery, useMutation, useQuery, gql } from "@apollo/client";
+import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut } from "firebase/auth";
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 // Enter copied or downloaded access ID and secret key here
 
-const ID = process.env.REACT_APP_ID
-const SECRET = process.env.REACT_APP_SECRET
+const ID = process.env.REACT_APP_ID;
+const SECRET = process.env.REACT_APP_SECRET;
 // The name of the bucket that you have created
-const BUCKET_NAME = 'attain-app-resources-bucket';
+const BUCKET_NAME = "attain-app-resources-bucket";
 const s3 = new AWS.S3({
   accessKeyId: ID,
-  secretAccessKey: SECRET
+  secretAccessKey: SECRET,
 });
-const Alert = React.forwardRef(function Alert(
-    props,
-    ref,
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+const GET_ITEMS_AVAILABLE_DUFFL = gql`
+  query ItemsAvailableDuffl(
+    $businessId: ID
+    $supplier: String
+    $items: [ItemAvailableInput]
+    $message: String
   ) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-  });
-  const GET_ITEMS_AVAILABLE_DUFFL = gql`
-  query ItemsAvailableDuffl($businessId: ID, $supplier: String, $items: [ItemAvailableInput], $message: String) {
-    itemsAvailableDuffl(businessId: $businessId, supplier: $supplier, items: $items, message: $message) {
+    itemsAvailableDuffl(
+      businessId: $businessId
+      supplier: $supplier
+      items: $items
+      message: $message
+    ) {
       item_id
       name
       mapped
+      supplier
+      quantity
     }
   }
 `;
 
 const IMPORT_ITEMS_TO_CART = gql`
-mutation ImportItemsToCart($importItemsToCartInput: importItemsToCartInput!) {
+  mutation ImportItemsToCart($importItemsToCartInput: importItemsToCartInput!) {
     importItemsToCart(importItemsToCartInput: $importItemsToCartInput) {
       id
       cartItems {
@@ -58,334 +75,479 @@ mutation ImportItemsToCart($importItemsToCartInput: importItemsToCartInput!) {
       }
       subtotal
     }
-  }`
+  }
+`;
 
-  const GET_USERS = gql`
+const GET_USERS = gql`
   query Users($getUsersInput: GetUsersInput) {
     users(getUsersInput: $getUsersInput) {
       id
       name
       user_name
     }
-  }`
+  }
+`;
 
+function Main({ userId }) {
+  const [fileData, setFileData] = useState([]);
+  const [csvSuppliers, setCsvSuppliers] = useState([]);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [open, setOpen] = React.useState(false);
+  const [store, setStore] = useState(7);
+  const [supplier, setSupplier] = useState("");
+  const [generateOrderLoading, setGenerateOrderLoading] = useState(false);
+  const [filename, setFilename] = useState("");
+  const [itemsDetail, setItemsDetail] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(
+    GET_ITEMS_AVAILABLE_DUFFL
+  );
+  const {
+    loading: getUsersLoading,
+    error: getUsersError,
+    data: getUsersData,
+  } = useQuery(GET_USERS, {
+    variables: {
+      getUsersInput: {
+        ids: [userId],
+      },
+    },
+  });
 
-function Main({userId}) {
+  const [
+    importItemsToCart,
+    {
+      data: importItemsToCartData,
+      loading: importItemsToCartLoading,
+      error: importItemsToCartError,
+    },
+  ] = useMutation(IMPORT_ITEMS_TO_CART);
 
-      
-    const [file, setFile] = useState([])
-    const [uploadedFile ,setUploadedFile] = useState(null)
-    const [open, setOpen] = React.useState(false);
-    const [store, setStore] = useState(7)
-    const [supplier, setSupplier] = useState('')
-    const [generateOrderLoading, setGenerateOrderLoading] = useState(false)
-    const [importItemsLoading, setImportItemsLoading] = useState(false)
-    const [filename, setFilename] = useState("")
-    const [itemsDetail, setItemsDetail] = useState([])
-    const [unavailableItemsDetail, setUnavailableItemsDetail] = useState([])
-    const [modalVisible, setModalVisible] = useState(false)
-    const [getItemsAvailableDuffl, { loading, error, data }] = useLazyQuery(GET_ITEMS_AVAILABLE_DUFFL);
-    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, {
-      variables: {
-        getUsersInput: {
-          ids: [userId]
-        }
-      }
-    });
-    
+  const auth = getAuth();
 
-    const [url, setUrl] = useState("")
-    const [importItemsToCart, { data: importItemsToCartData, loading: importItemsToCartLoading, error: importItemsToCartError }] = useMutation(IMPORT_ITEMS_TO_CART);
-  
+  const suppliers = [
+    "Mixed",
+    "Pitco Foods",
+    "Food Snacks",
+    "HLA",
+    "Wonder Ice Cream",
+    "Coremark",
+    "McLane",
+    "Costco Business",
+    "KeHE",
+    "UNFI",
+    "Amazon",
+    "Pacific Beverage Co.",
+    "AshaPops",
+    "Pepsico",
+    "Mel-O-Dee Ice Cream",
+    "Frito Lay",
+    "Prime Wholesale",
+    "SnacksToYou",
+    "Coca-Cola",
+    "Jeff & Tony's Ice Cream",
+    "Dippin Dots",
+    "DropsofDough",
+    "Ik Distributions LLC",
+    "Taco Inc",
+    "Guayaki",
+    "LA DISTCO",
+    "Quokka",
+    "AZ Select Distribution",
+    "Hensley",
+    "Shamrock Foods",
+    "Columbia Distributors",
+    "Magic Ice Cube",
+    "Walmart",
+    "Southern Glazer's Wine and Spirits",
+    "IK Distribution",
+    "B2B - On Consignment",
+    "Other",
+    "UMPQUA Dairy",
+    "Bend",
+    "UNFI EO",
+    "Soda Man USA",
+    "Wall Street Distribution",
+    "Jenis Ice Cream",
+    "Handle",
+    "Restaurant Depot",
+    "Pressed Juicery",
+    "Rancho Cold Brew",
+    "Faire",
+    "Mable",
+    "GEMENI",
+    "OCM",
+    "RIVERA",
+    "Capital Reyes Distributing",
+    "Austin Wholesale Supply",
+    "Sysco",
+    "JFC",
+    "Vistar",
+    "Mipod Wholesale",
+  ];
 
-    const auth = getAuth()
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-    const suppliers = ["Pitco Foods", "Food Snacks", "HLA", "Wonder Ice Cream", "Coremark", "McLane", "Costco Business", "KeHE", "UNFI", "Amazon", "Pacific Beverage Co.", "AshaPops", "Pepsico", "Mel-O-Dee Ice Cream", "Frito Lay", "Prime Wholesale", "SnacksToYou", "Coca-Cola", "Jeff & Tony's Ice Cream", "Dippin Dots", "DropsofDough", "Ik Distributions LLC", "Taco Inc", "Guayaki", "LA DISTCO", "Quokka", "AZ Select Distribution", "Hensley", "Shamrock Foods", "Columbia Distributors", "Magic Ice Cube", "Walmart", "Southern Glazer's Wine and Spirits", "IK Distribution", "B2B - On Consignment", "Other", "UMPQUA Dairy", "Bend", "UNFI EO", "Soda Man USA", "Wall Street Distribution", "Jenis Ice Cream", "Handle", "Restaurant Depot", "Pressed Juicery", "Rancho Cold Brew", "Faire", "Mable", "GEMENI", "OCM", "RIVERA", "Capital Reyes Distributing", "Austin Wholesale Supply", "Sysco", "JFC", "Vistar", "Mipod Wholesale"]
-    const handleClose = () => {
-        setOpen(false);
-      };
-    
-    
-      const handleCloseModal = () => {
-          setModalVisible(false)
-        
-          
-      }
-    const generateOrder = async () => {
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+  const generateOrder = async () => {
+    setGenerateOrderLoading(true);
 
-  
-      setGenerateOrderLoading(true)
-    // Setting up S3 upload parameters
+    let modifiedResults;
+    if (supplier === "HLA") {
+      modifiedResults = [...fileData].map((item) => ({
+        name: item["{UPC}"],
+        quantity: item["{QTY}"],
+        upc: item["{UPC}"],
+      }));
+    } else {
+      modifiedResults = [...fileData].map((item) => ({
+        name: item.product_name,
+        quantity: item.total_packs_ordered,
+        unit_size: item.pack_size,
+        price: item.pack_price,
+        upc: item.upc,
+        supplier: item.supplier_name,
+      }));
+
+      const distinctSuppliers = [
+        ...new Set([...fileData].map((item) => item.supplier_name)),
+      ];
+      setCsvSuppliers(
+        distinctSuppliers.map((supplier) => {
+          return {
+            supplier: supplier,
+            loading: false,
+            submitted: false,
+          };
+        })
+      );
+    }
+
     const params = {
       Bucket: BUCKET_NAME,
-      Key: uuidv4() + ".csv", // File name you want to save as in S3
-      Body: uploadedFile
-  };
-  // Uploading files to the bucket
-  
-  try {
-    const stored = await s3.upload(params).promise()
-    setUrl(stored.Location)
-    const items = Object.entries(file).map(([key, value]) => (
-      {
-        name: key,
-        unit_size: parseInt(value.unit_size),
-        price: parseFloat(value.price),
-        upc: value.upc
-      }
-    ))
-    
+      Key: uuidv4() + ".csv",
+      Body: uploadedFile,
+    };
 
+    try {
+      const stored = await s3.upload(params).promise();
+      const items = modifiedResults.map((item) => ({
+        ...item,
+        unit_size: parseInt(item.unit_size),
+        price: parseFloat(item.price),
+        quantity: parseInt(item.quantity),
+      }));
 
-    await getItemsAvailableDuffl({
-      variables: {
+      await getItemsAvailableDuffl({
+        variables: {
           businessId: store,
           supplier: supplier,
           items: items,
-          message: stored.Location
-      }
-    })
-  }
-  catch (error) {
-    console.log(error)
-  }
-
-  setGenerateOrderLoading(false)
+          message: stored.Location,
+        },
+      });
+    } catch (error) {
+      console.log(error);
     }
 
-    const importItems = async() => {
-        setImportItemsLoading(true)
-        
-        try {
-          const itemsDetailInput = itemsDetail.map((item) => (
-            {
-                cartId: store,
-                itemId: item.item_id,
-                quantity: parseInt(file[item.name].quantity)
-            }
-        ))
-        console.log(itemsDetailInput)
-        
-       
-        await importItemsToCart({
-            variables: {
-                "importItemsToCartInput": {
-                  "userId": store,
-                  "itemsDetail": itemsDetailInput,
-                  "message": url
-                }
-              }
-        })
-        handleCloseModal()
-        setOpen(true)
-        } 
-        catch (error) {
-          console.log(error)
+    setGenerateOrderLoading(false);
+  };
+
+  const importItems = async (selectedSupplier) => {
+    setCsvSuppliers((prev) => {
+      return prev.map((supplier) => {
+        if (supplier.supplier === selectedSupplier) {
+          return {
+            ...supplier,
+            loading: true,
+          };
         }
+        return supplier;
+      });
+    });
+    const csvString = Papa.unparse(
+      fileData.filter((item) => item.supplier_name === selectedSupplier)
+    );
 
+    const params = {
+      Bucket: BUCKET_NAME,
+      ContentType: "text/csv",
+      Key: uuidv4() + ".csv", // File name you want to save as in S3
+      Body: csvString,
+    };
 
-        setImportItemsLoading(false)
+    const supplierItemDetails = itemsDetail.filter(
+      (item) => item.supplier === selectedSupplier
+    );
 
+    const itemsDetailInput = supplierItemDetails.map((item) => ({
+      cartId: store,
+      itemId: item.item_id,
+      quantity: item.quantity,
+    }));
+
+    try {
+      const stored = await s3.upload(params).promise();
+      await importItemsToCart({
+        variables: {
+          importItemsToCartInput: {
+            userId: store,
+            itemsDetail: itemsDetailInput,
+            message: stored.Location,
+          },
+        },
+      });
+      // handleCloseModal();
+      // setOpen(true);
+
+      setCsvSuppliers((prev) => {
+        return prev.map((supplier) => {
+          if (supplier.supplier === selectedSupplier) {
+            return {
+              ...supplier,
+              loading: false,
+              submitted: true,
+            };
+          }
+          return supplier;
+        });
+      });
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-
-    const Row = ({ index, style }) => (
-        <div style={style}>
-            {unavailableItemsDetail[index].name}
-        </div>
-      );
-   
-    useEffect(() => {
-        if (!loading && data) {
-            const items = data.itemsAvailableDuffl
-            console.log("here:" + items.length)
-            const unavailableItems = items.filter((item) => item.mapped === false)
-            setUnavailableItemsDetail(unavailableItems)
-            setItemsDetail(items)
-            setModalVisible(true)
-        }
-    }, [data, loading])
-
-    useEffect(() => {
-      if (!getUsersLoading && getUsersData) {
-        setStore(getUsersData.users[0].id)
-      }
-    }, [getUsersData, getUsersLoading])
-    
-    function Upload(props) {
-        const onDrop = useCallback((acceptedFiles) => {
-            acceptedFiles.forEach((file) => {
-                setUploadedFile(file)
-                Papa.parse(file, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function (results) {
-                    
-
-                      if (supplier === 'HLA') {
-                        var modifiedResults = results.data.reduce(function(map, obj) {
-                          
-                          map[obj["{UPC}"]] = {
-                              quantity: obj["{QTY}"],
-                              upc: obj["{UPC}"]
-                          };
-                          return map;
-                          
-                        
-                      }, {});
-                      }
-                      else {
-                      var modifiedResults = results.data.reduce(function(map, obj) {
-                        map[obj.product_name] = {
-                            quantity: obj.total_packs_ordered,
-                            unit_size: obj.pack_size,
-                            price: obj.pack_price,
-                            upc: obj.upc
-                        };
-                        return map;
-                        
-                      
-                    }, {});
-                  }
-
-                    setFile(modifiedResults)
-                      setFilename(file.name)
-                    },
-                  });
-            })
-            
-          }, [])
-        const { acceptedFiles, getRootProps, getInputProps } = useDropzone({onDrop});
-        return (
-            <section className="upload-container" >
-                <div {...getRootProps({ className: 'dropzone' })}>
-                    <input {...getInputProps()} />
-                    <div className='upload-txt-wrap'>
-                        <p style={{ color: '#888888', fontSize: '20px', fontWeight: '400' }}>Upload File Here</p>
-                        <CloudUploadOutlinedIcon style={{ color: 'black', fontSize: '70px' }} />
-                    </div>
-                </div>
-                  <aside>
-        <h4>File</h4>
-        <h2>{filename}</h2>
-      </aside>
-            </section>
-        );
+  useEffect(() => {
+    if (!loading && data) {
+      const items = data.itemsAvailableDuffl;
+      setItemsDetail(items);
+      setModalVisible(true);
     }
+  }, [data, loading]);
 
-
-    if (getUsersError) {
-      return null
+  useEffect(() => {
+    if (!getUsersLoading && getUsersData) {
+      setStore(getUsersData.users[0].id);
     }
-    if (getUsersLoading && !getUsersData) {
-      return null
-    }
+  }, [getUsersData, getUsersLoading]);
 
-
+  function Upload(props) {
+    const onDrop = useCallback((acceptedFiles) => {
+      acceptedFiles.forEach((file) => {
+        setUploadedFile(file);
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function (results) {
+            setFileData(results.data);
+            setFilename(file.name);
+          },
+        });
+      });
+    }, []);
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+      onDrop,
+    });
     return (
-        <>
-            <div className='main-bg'>
-            <Snackbar open={open} anchorOrigin={{ vertical: 'top', horizontal:'center' }} autoHideDuration={3000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '500px' }}>
-          <h4>Your order was submitted! Please check the Attain app track your order.</h4>
-        </Alert>
-      </Snackbar>
-            <Modal onClose={handleCloseModal} open={modalVisible}>
-                <Box style={{width: 500, height: 500, top: '50%',
-  left: '50%', position: "absolute",  backgroundColor: 'white',
-  border: '2px solid #000',
-  boxShadow: 24,
-  padding: 20, transform: 'translate(-50%, -50%)',}}>
-                    <h1 style={{marginBottom: 20}}>{"Thanks! Your CSV file has been uploaded. Click below to submit your order."}</h1>
-                    {/* <h2>The following items are unmapped, but we will still try to process them if possible:</h2>
-                    <p style={{marginBottom: 50}}>*they will still appear in your cart</p> */}
-                    {/* <List
-    height={400}
-    itemCount={unavailableItemsDetail.length}
-    itemSize={60}
-    width={500}
-  >
-    {Row}
-  </List> */}
-                    <Button onClick={importItems} variant="contained" style={{
-                                position: "absolute", bottom: 20, right: 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '220px', height: '55px'
-                            }}>{importItemsLoading ? <CircularProgress/> : 'Submit Order'}</Button>
-                             <Button onClick={handleCloseModal} variant="contained" style={{
-                                position: "absolute", bottom: 20, left  : 20, color: '#FFFFFF', backgroundColor: '#F05124', width: '150px', height: '55px',
-                            }}>Cancel</Button>
-                </Box>
-            </Modal>
-                        <div className='header'>
-                            <p className='header-text'>Attain CSV Ordering</p>
-                            <Button variant="contained" onClick={async () => await signOut(auth)} style={{position: "absolute", top: 0, right: 15}}>Log out</Button>
-                        </div>
-  
-                        <div className='btn-wrapper'>
-                            <div style={{marginTop: 20}}>
-                                <InputLabel id="demo-simple-select-label">Store</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    label="Select Store"
-                                    className='dropdown'
-                                    displayEmpty
-                                    value={store}
-                                    onChange={(event) => setStore(event.target.value)}                     
-                                >
-                                 
-                              
-                                 {getUsersData.users[0].id === '11' ? 
-                                 [{id: 7, name: 'UC Berkeley'}, 
-                                 {id: 9, name: 'UC Santa Barbara'}, 
-                                 {id: 10, name: 'USC'},
-                                 {id: 11, name: 'UCLA'},
-                                 {id: 12, name: 'ASU'},
-                                 {id: 13, name: 'UofA'},
-                                 {id: 20, name: 'UT-Austin'}].map((store) => <MenuItem value={store.id}>{store.name}</MenuItem>) : <MenuItem value={getUsersData.users[0].id}>{getUsersData.users[0].name}</MenuItem> }
+      <section className="upload-container">
+        <div {...getRootProps({ className: "dropzone" })}>
+          <input {...getInputProps()} />
+          <div className="upload-txt-wrap">
+            <p
+              style={{ color: "#888888", fontSize: "20px", fontWeight: "400" }}
+            >
+              Upload File Here
+            </p>
+            <CloudUploadOutlinedIcon
+              style={{ color: "black", fontSize: "70px" }}
+            />
+          </div>
+        </div>
+        <aside>
+          <h4>File</h4>
+          <h2>{filename}</h2>
+        </aside>
+      </section>
+    );
+  }
 
-                                 
-                                    
-                      
-                                </Select>
-                            </div>
-                            <div style={{marginTop: 10, marginBottom: 20}}>
-                                <InputLabel id="demo-simple-select-label">Supplier</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    label="Select Store"
-                                    className='dropdown'
-                                    displayEmpty
-                                    value={supplier}
-                                    onChange={(event) => setSupplier(event.target.value)}
-                                >
-                                  {
-                                    suppliers.map((supplier) => {
-                                      return <MenuItem value={supplier}>{supplier}</MenuItem>
-                                    })
-                                  }
-                                    
-                                  
-                                    
-                                </Select>
-                            </div>
-                            {supplier && <Upload />}
-                            <div style={{marginTop: 20}}>
-                            <Button onClick={generateOrder} variant="contained" style={{
-                                color: '#FFFFFF', backgroundColor: '#F05124', width: '305px', height: '50px'
-                            }}>
-                              
-                              
-                              { generateOrderLoading ? <CircularProgress /> : 'GENERATE ORDER'}
-                              
-                              </Button>
-                            
-                            </div>
-                        </div>
-            
-            </div>
-        </>
-    )
+  if (getUsersError) {
+    return null;
+  }
+  if (getUsersLoading && !getUsersData) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className="main-bg">
+        <Snackbar
+          open={open}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          autoHideDuration={3000}
+          onClose={handleClose}
+        >
+          <Alert
+            onClose={handleClose}
+            severity="success"
+            sx={{ width: "500px" }}
+          >
+            <h4>
+              Your order was submitted! Please check the Attain app track your
+              order.
+            </h4>
+          </Alert>
+        </Snackbar>
+        <Modal onClose={handleCloseModal} open={modalVisible}>
+          <Box
+            style={{
+              width: 500,
+              height: 500,
+              top: "50%",
+              left: "50%",
+              position: "absolute",
+              backgroundColor: "white",
+              border: "2px solid #000",
+              boxShadow: 24,
+              padding: 20,
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            <h1 style={{ marginBottom: 50 }}>
+              {
+                "Thanks! Your CSV file has been uploaded. Click below to submit your order."
+              }
+            </h1>
+            {csvSuppliers.map((supplier) => {
+              return (
+                <Box
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <h3>{supplier.supplier}</h3>
+                  {supplier.submitted ? (
+                    <h3>Submitted</h3>
+                  ) : (
+                    <Button
+                      onClick={() => importItems(supplier.supplier)}
+                      variant="contained"
+                      style={{ color: "#FFFFFF", backgroundColor: "#F05124" }}
+                    >
+                      {supplier.loading ? <CircularProgress /> : "Submit Order"}
+                    </Button>
+                  )}
+                </Box>
+              );
+            })}
+
+            <Box
+              style={{
+                position: "absolute",
+                bottom: 20,
+                left: 0,
+                right: 0,
+                textAlign: "center",
+              }}
+            >
+              <Button
+                onClick={handleCloseModal}
+                variant="contained"
+                style={{
+                  width: "80%",
+                  height: "40px",
+                  color: "#FFFFFF",
+                  backgroundColor: "#F05124",
+                }}
+              >
+                Done
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+        <div className="header">
+          <p className="header-text">Attain CSV Ordering</p>
+          <Button
+            variant="contained"
+            onClick={async () => await signOut(auth)}
+            style={{ position: "absolute", top: 0, right: 15 }}
+          >
+            Log out
+          </Button>
+        </div>
+
+        <div className="btn-wrapper">
+          <div style={{ marginTop: 20 }}>
+            <InputLabel id="demo-simple-select-label">Store</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              label="Select Store"
+              className="dropdown"
+              displayEmpty
+              value={store}
+              onChange={(event) => setStore(event.target.value)}
+            >
+              {getUsersData.users[0].id === "11" ? (
+                [
+                  { id: 7, name: "UC Berkeley" },
+                  { id: 9, name: "UC Santa Barbara" },
+                  { id: 10, name: "USC" },
+                  { id: 11, name: "UCLA" },
+                  { id: 12, name: "ASU" },
+                  { id: 13, name: "UofA" },
+                  { id: 20, name: "UT-Austin" },
+                ].map((store) => (
+                  <MenuItem value={store.id}>{store.name}</MenuItem>
+                ))
+              ) : (
+                <MenuItem value={getUsersData.users[0].id}>
+                  {getUsersData.users[0].name}
+                </MenuItem>
+              )}
+            </Select>
+          </div>
+          <div style={{ marginTop: 10, marginBottom: 20 }}>
+            <InputLabel id="demo-simple-select-label">Supplier</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              label="Select Store"
+              className="dropdown"
+              displayEmpty
+              value={supplier}
+              onChange={(event) => setSupplier(event.target.value)}
+            >
+              {suppliers.map((supplier) => {
+                return <MenuItem value={supplier}>{supplier}</MenuItem>;
+              })}
+            </Select>
+          </div>
+          {supplier && <Upload />}
+          <div style={{ marginTop: 20 }}>
+            <Button
+              onClick={generateOrder}
+              variant="contained"
+              style={{
+                color: "#FFFFFF",
+                backgroundColor: "#F05124",
+                width: "305px",
+                height: "50px",
+              }}
+            >
+              {generateOrderLoading ? <CircularProgress /> : "GENERATE ORDER"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
-export default Main
+export default Main;
