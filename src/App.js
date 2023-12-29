@@ -1,10 +1,10 @@
-import './App.css';
-import {useEffect, useState} from 'react'
-import Main from './components/Main';
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import "./App.css";
+import { useEffect, useState } from "react";
+import Main from "./components/Main";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import Login from "./components/Login"
+import Login from "./components/Login";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://firebase.google.com/docs/web/learn-more#config-object
@@ -21,23 +21,17 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-
 // Initialize Firebase Authentication and get a reference to the service
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-
-
-
-
-
 const client = new ApolloClient({
-  uri: 'https://attain-server.herokuapp.com',
+  uri: "https://attain-server.herokuapp.com/graphql",
   cache: new InMemoryCache(),
 });
 
 function App() {
-  const [userId, setUserId] = useState(null)
+  const [userId, setUserId] = useState(null);
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const querySnapshot = await getDoc(doc(db, "users", user.uid));
@@ -48,19 +42,18 @@ function App() {
       // User is signed in, see docs for a list of available properties
       // https://firebase.google.com/docs/reference/js/firebase.User
       const uid = user.uid;
-      setIsLoggedIn(true)
+      setIsLoggedIn(true);
       // ...
     } else {
       // User is signed out
       // ...
-      setIsLoggedIn(false)
+      setIsLoggedIn(false);
     }
-  })
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
     <ApolloProvider client={client}>
-     {isLoggedIn ? <Main userId={userId}/> : <Login/>}
-    
+      {isLoggedIn ? <Main userId={userId} /> : <Login />}
     </ApolloProvider>
   );
 }

@@ -202,6 +202,7 @@ function Main({ userId }) {
         name: item["{UPC}"],
         quantity: item["{QTY}"],
         upc: item["{UPC}"],
+        supplier: "HLA",
       }));
     } else {
       modifiedResults = [...fileData].map((item) => ({
@@ -212,21 +213,20 @@ function Main({ userId }) {
         upc: item.upc,
         supplier: item.supplier_name,
       }));
-
-      const distinctSuppliers = [
-        ...new Set([...fileData].map((item) => item.supplier_name)),
-      ];
-      setCsvSuppliers(
-        distinctSuppliers.map((supplier) => {
-          return {
-            supplier: supplier,
-            loading: false,
-            submitted: false,
-          };
-        })
-      );
     }
 
+    const distinctSuppliers = [
+      ...new Set([...modifiedResults].map((item) => item.supplier)),
+    ];
+    setCsvSuppliers(
+      distinctSuppliers.map((supplier) => {
+        return {
+          supplier: supplier,
+          loading: false,
+          submitted: false,
+        };
+      })
+    );
     const params = {
       Bucket: BUCKET_NAME,
       Key: uuidv4() + ".csv",
@@ -269,7 +269,12 @@ function Main({ userId }) {
         return supplier;
       });
     });
-    const csvString = Papa.unparse(
+
+    let csvString;
+    if (supplier === "HLA") {
+      csvString = Papa.unparse([...fileData]);
+    }
+    csvString = Papa.unparse(
       fileData.filter((item) => item.supplier_name === selectedSupplier)
     );
 
